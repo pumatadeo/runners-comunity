@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PACE — Comunidad de Corredores</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C87A;
+    --gold-dim: #7A6330;
+    --black: #0A0A0A;
+    --dark: #111111;
+    --dark2: #181818;
+    --dark3: #222222;
+    --white: #F5F0E8;
+    --gray: #555;
+    --gray-light: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Crimson Pro', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 3rem;
+    background: linear-gradient(to bottom, rgba(10,10,10,0.98), transparent);
+    border-bottom: 1px solid rgba(201,168,76,0.12);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-decoration: none;
+  }
+
+  .logo span {
+    color: var(--white);
+    opacity: 0.5;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    display: block;
+    font-family: 'Space Mono', monospace;
+    margin-top: -4px;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .nav-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gray-light);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .nav-link:hover { color: var(--gold); }
+
+  .btn-github {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--gold);
+    color: var(--black);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    text-decoration: none;
+  }
+
+  .btn-github:hover {
+    background: var(--gold-light);
+    transform: translateY(-1px);
+  }
+
+  .btn-github svg { width: 16px; height: 16px; fill: var(--black); }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 80%, rgba(201,168,76,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 20% 20%, rgba(201,168,76,0.04) 0%, transparent 60%),
+      linear-gradient(180deg, #0A0A0A 0%, #0F0D09 100%);
+  }
+
+  /* Animated track lines */
+  .track-lines {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    overflow: hidden;
+    opacity: 0.15;
+  }
+
+  .track-lines::before,
+  .track-lines::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -100%;
+    right: -100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: trackMove 3s linear infinite;
+  }
+  .track-lines::before { bottom: 30%; animation-delay: 0s; }
+  .track-lines::after  { bottom: 60%; animation-delay: 1.5s; opacity: 0.5; }
+
+  @keyframes trackMove {
+    from { transform: translateX(-30%); }
+    to   { transform: translateX(30%); }
+  }
+
+  .hero-content {
+    position: relative;
+    text-align: center;
+    max-width: 900px;
+    padding: 2rem;
+    animation: fadeUp 1s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(5rem, 15vw, 12rem);
+    line-height: 0.9;
+    letter-spacing: 0.05em;
+    color: var(--white);
+    margin-bottom: 0.2rem;
+  }
+
+  .hero-title em {
+    color: var(--gold);
+    font-style: normal;
+    display: block;
+  }
+
+  .hero-sub {
+    font-size: 1.3rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--gray-light);
+    margin: 1.5rem auto 2.5rem;
+    max-width: 500px;
+    line-height: 1.6;
+  }
+
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 1rem 2.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    animation: fadeUp 1s 0.3s ease both;
+  }
+
+  .hero-cta:hover {
+    background: var(--gold);
+    color: var(--black);
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    margin-top: 5rem;
+    animation: fadeUp 1s 0.5s ease both;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--gray-light);
+    text-transform: uppercase;
+    margin-top: 0.2rem;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    padding: 5rem 3rem;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    padding-bottom: 1rem;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 0.1em;
+    color: var(--white);
+  }
+
+  .section-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    opacity: 0.7;
+  }
+
+  /* ── FEED ── */
+  .feed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .post-card {
+    background: var(--dark);
+    padding: 2rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .post-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 0;
+    background: var(--gold);
+    transition: height 0.3s;
+  }
+
+  .post-card:hover { background: var(--dark2); }
+  .post-card:hover::before { height: 100%; }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    color: var(--black);
+    flex-shrink: 0;
+  }
+
+  .post-author {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+
+  .post-date {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--gray);
+    margin-top: 2px;
+  }
+
+  .post-category {
+    margin-left: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    border: 1px solid var(--gold-dim);
+    padding: 2px 8px;
+  }
+
+  .post-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    color: var(--white);
+    margin-bottom: 0.7rem;
+    line-height: 1.1;
+  }
+
+  .post-body {
+    font-size: 0.95rem;
+    color: var(--gray-light);
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  .post-footer {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .post-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray);
+  }
+
+  .post-stat svg { width: 12px; height: 12px; stroke: var(--gold-dim); fill: none; }
+
+  /* ── GALLERY ── */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 220px 220px;
+    gap: 4px;
+  }
+
+  .gallery-item {
+    position: relative;
+    overflow: hidden;
+    background: var(--dark2);
+    cursor: pointer;
+  }
+
+  .gallery-item:first-child {
+    grid-row: 1 / 3;
+  }
+
+  .gallery-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(60%) brightness(0.7);
+    transition: all 0.4s;
+  }
+
+  .gallery-item:hover .gallery-img {
+    filter: grayscale(20%) brightness(0.9);
+    transform: scale(1.03);
+  }
+
+  .gallery-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(10,10,10,0.9) 0%, transparent 60%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.2rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .gallery-item:hover .gallery-overlay { opacity: 1; }
+
+  .gallery-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    color: var(--white);
+  }
+
+  .gallery-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    margin-top: 2px;
+  }
+
+  /* placeholder gallery images using CSS gradients */
+  .gi-1 { background: linear-gradient(135deg, #1a1208, #3d2e10, #1a1208); }
+  .gi-2 { background: linear-gradient(135deg, #0d1a0d, #1a3a1a, #0d1a0d); }
+  .gi-3 { background: linear-gradient(135deg, #1a0d0d, #3a1a1a, #1a0d0d); }
+  .gi-4 { background: linear-gradient(135deg, #0d0d1a, #1a1a3a, #0d0d1a); }
+  .gi-5 { background: linear-gradient(135deg, #1a1515, #3a2020, #1a1515); }
+
+  .gallery-icon {
+    font-size: 3rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.15;
+  }
+
+  /* ── CALENDAR ── */
+  .calendar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .event-row {
+    display: grid;
+    grid-template-columns: 80px 1fr auto auto;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.5rem 2rem;
+    background: var(--dark);
+    border-bottom: 1px solid rgba(201,168,76,0.06);
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .event-row:hover { background: var(--dark2); }
+  .event-row:last-child { border-bottom: none; }
+
+  .event-date-block {
+    text-align: center;
+    border-right: 1px solid rgba(201,168,76,0.2);
+    padding-right: 2rem;
+  }
+
+  .event-day {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    line-height: 1;
+    color: var(--gold);
+  }
+
+  .event-month {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--gray);
+    text-transform: uppercase;
+  }
+
+  .event-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+    color: var(--white);
+    margin-bottom: 0.2rem;
+  }
+
+  .event-location {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gold-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .event-distance {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    color: var(--gold);
+    text-align: right;
+  }
+
+  .event-dist-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    color: var(--gray);
+    letter-spacing: 0.1em;
+    text-align: right;
+  }
+
+  .event-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    padding: 0.3rem 0.8rem;
+    text-transform: uppercase;
+  }
+
+  .badge-open { background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid var(--gold-dim); }
+  .badge-soon { background: rgba(200,80,80,0.1); color: #e07070; border: 1px solid #6a3030; }
+  .badge-full { background: rgba(80,80,80,0.1); color: var(--gray); border: 1px solid var(--gray); }
+
+  /* ── RANKINGS ── */
+  .rankings-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .rankings-table thead tr {
+    background: rgba(201,168,76,0.08);
+  }
+
+  .rankings-table th {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+    font-weight: 400;
+  }
+
+  .rankings-table tbody tr {
+    background: var(--dark);
+    border-bottom: 1px solid rgba(201,168,76,0.05);
+    transition: background 0.2s;
+  }
+
+  .rankings-table tbody tr:hover { background: var(--dark2); }
+
+  .rankings-table td {
+    padding: 1.2rem 1.5rem;
+    font-size: 0.95rem;
+    color: var(--white);
+    vertical-align: middle;
+  }
+
+  .rank-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    color: var(--gray);
+    width: 50px;
+  }
+
+  .rank-1 .rank-num { color: var(--gold); }
+  .rank-2 .rank-num { color: #C0C0C0; }
+  .rank-3 .rank-num { color: #CD7F32; }
+
+  .rank-runner {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .rank-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .rank-pace {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray-light);
+  }
+
+  .rank-event {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── MODAL / LOGIN ── */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+
+  .modal-bg.open { display: flex; }
+
+  .modal {
+    background: var(--dark);
+    border: 1px solid rgba(201,168,76,0.3);
+    max-width: 440px;
+    width: 90%;
+    padding: 3rem;
+    position: relative;
+    animation: fadeUp 0.3s ease;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    background: none;
+    border: none;
+    color: var(--gray);
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-family: 'Space Mono', monospace;
+    transition: color 0.2s;
+  }
+
+  .modal-close:hover { color: var(--white); }
+
+  .modal-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: 0.08em;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-desc {
+    font-size: 0.95rem;
+    color: var(--gray-light);
+    line-height: 1.6;
+    font-style: italic;
+    margin-bottom: 2rem;
+  }
+
+  .modal-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    width: 100%;
+    background: var(--gold);
+    color: var(--black);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 1rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 1rem;
+    text-decoration: none;
+  }
+
+  .modal-btn:hover { background: var(--gold-light); }
+
+  .modal-btn svg { width: 18px; height: 18px; fill: var(--black); }
+
+  .modal-note {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--gray);
+    letter-spacing: 0.1em;
+    line-height: 1.8;
+    text-align: center;
+  }
+
+  .modal-note strong { color: var(--gold-dim); }
+
+  .modal-divider {
+    border: none;
+    border-top: 1px solid rgba(201,168,76,0.12);
+    margin: 1.5rem 0;
+  }
+
+  /* ── ADMIN PANEL (hidden) ── */
+  .admin-panel {
+    display: none;
+    position: fixed;
+    top: 70px; right: 2rem;
+    background: var(--dark);
+    border: 1px solid rgba(201,168,76,0.25);
+    padding: 1.5rem;
+    z-index: 200;
+    min-width: 280px;
+    animation: fadeUp 0.2s ease;
+  }
+
+  .admin-panel.open { display: block; }
+
+  .admin-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+
+  .admin-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .admin-user {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--white);
+  }
+
+  .admin-user span {
+    display: block;
+    color: var(--gray);
+    font-size: 0.5rem;
+    margin-top: 2px;
+  }
+
+  .toggle {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--gray);
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    left: 3px; bottom: 3px;
+    background: var(--white);
+    transition: 0.2s;
+  }
+
+  .toggle input:checked + .toggle-slider { background: var(--gold); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid rgba(201,168,76,0.1);
+    padding: 2rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    opacity: 0.5;
+  }
+
+  .footer-copy {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--gray);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .tab {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    color: var(--gray);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+  }
+
+  .tab.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+
+  .tab:hover { color: var(--white); }
+
+  /* ── NEW POST FORM ── */
+  .new-post-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: auto;
+  }
+
+  .new-post-btn:hover { background: rgba(201,168,76,0.1); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-dim); }
+
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    section { padding: 3rem 1.5rem; }
+    .hero-stats { gap: 2rem; }
+    .gallery-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+    .gallery-item:first-child { grid-row: auto; }
+    .event-row { grid-template-columns: 60px 1fr; gap: 1rem; }
+    .event-distance, .event-badge { display: none; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">PACE<span>comunidad de corredores</span></a>
+  <div class="nav-right">
+    <a class="nav-link" onclick="scrollTo('feed')">Feed</a>
+    <a class="nav-link" onclick="scrollTo('gallery')">Galería</a>
+    <a class="nav-link" onclick="scrollTo('events')">Eventos</a>
+    <a class="nav-link" onclick="scrollTo('rankings')">Rankings</a>
+    <button class="btn-github" onclick="openLogin()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.929.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .315.216.69.825.57C20.565 21.796 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      Acceder con GitHub
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" style="padding:0; max-width:100%">
+  <div class="hero-bg"></div>
+  <div class="track-lines"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">· comunidad privada de corredores ·</p>
+    <h1 class="hero-title">CORRE<em>MÁS</em></h1>
+    <p class="hero-sub">Un espacio exclusivo para compartir experiencias, superar marcas y celebrar cada kilómetro juntos.</p>
+    <a class="hero-cta" onclick="openLogin()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.929.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .315.216.69.825.57C20.565 21.796 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      Únete con GitHub
+    </a>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-num">128</div>
+        <div class="stat-label">Corredores</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">4.2K</div>
+        <div class="stat-label">km registrados</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">37</div>
+        <div class="stat-label">Carreras completadas</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEED -->
+<section id="feed">
+  <div class="section-header">
+    <span class="section-num">01 —</span>
+    <h2 class="section-title">Feed de Experiencias</h2>
+    <button class="new-post-btn" onclick="openLogin()">+ Nueva publicación</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active">Todos</button>
+    <button class="tab">Carreras</button>
+    <button class="tab">Entrenamiento</button>
+    <button class="tab">Consejos</button>
+  </div>
+
+  <div class="feed-grid" id="feedGrid">
+    <!-- generado por JS -->
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="section-header">
+    <span class="section-num">02 —</span>
+    <h2 class="section-title">Galería de Carreras</h2>
+    <button class="new-post-btn" onclick="openLogin()">+ Subir foto</button>
+  </div>
+
+  <div class="gallery-grid">
+    <div class="gallery-item gi-1">
+      <div class="gallery-icon">🏃</div>
+      <div class="gallery-overlay">
+        <div class="gallery-label">Maratón CDMX 2024</div>
+        <div class="gallery-sub">OCTUBRE · 42K · 284 fotos</div>
+      </div>
+    </div>
+    <div class="gallery-item gi-2">
+      <div class="gallery-icon">🌄</div>
+      <div class="gallery-overlay">
+        <div class="gallery-label">Trail Sierra Norte</div>
+        <div class="gallery-sub">MARZO · 21K · 96 fotos</div>
+      </div>
+    </div>
+    <div class="gallery-item gi-3">
+      <div class="gallery-icon">🌅</div>
+      <div class="gallery-overlay">
+        <div class="gallery-label">5K Amanecer</div>
+        <div class="gallery-sub">ENERO · 5K · 42 fotos</div>
+      </div>
+    </div>
+    <div class="gallery-item gi-4">
+      <div class="gallery-icon">🏅</div>
+      <div class="gallery-overlay">
+        <div class="gallery-label">Media Maratón Querétaro</div>
+        <div class="gallery-sub">NOV · 21K · 118 fotos</div>
+      </div>
+    </div>
+    <div class="gallery-item gi-5">
+      <div class="gallery-icon">⛰️</div>
+      <div class="gallery-overlay">
+        <div class="gallery-label">Ultra Trail Nevado</div>
+        <div class="gallery-sub">FEB · 50K · 73 fotos</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVENTS / CALENDAR -->
+<section id="events">
+  <div class="section-header">
+    <span class="section-num">03 —</span>
+    <h2 class="section-title">Calendario de Eventos</h2>
+    <button class="new-post-btn" onclick="openLogin()">+ Agregar evento</button>
+  </div>
+
+  <div class="calendar-list">
+    <div class="event-row">
+      <div class="event-date-block">
+        <div class="event-day">29</div>
+        <div class="event-month">MAR 2026</div>
+      </div>
+      <div>
+        <div class="event-name">LuluLemon 10K Tour CDMX 2026</div>
+        <div class="event-location">📍 Ciudad de México · CDMX</div>
+      </div>
+      <div>
+        <div class="event-distance">10</div>
+        <div class="event-dist-label">kilómetros</div>
+      </div>
+      <div class="event-badge badge-soon">Cierra pronto</div>
+    </div>
+    <div class="event-row">
+      <div class="event-date-block">
+        <div class="event-day">05</div>
+        <div class="event-month">ABR 2026</div>
+      </div>
+      <div>
+        <div class="event-name">Electrolit 10K y 21K Monterrey 2026</div>
+        <div class="event-location">📍 Monterrey · Nuevo León</div>
+      </div>
+      <div>
+        <div class="event-distance">21</div>
+        <div class="event-dist-label">kilómetros</div>
+      </div>
+      <div class="event-badge badge-open">Inscripción abierta</div>
+    </div>
+    <div class="event-row">
+      <div class="event-date-block">
+        <div class="event-day">16</div>
+        <div class="event-month">ABR 2026</div>
+      </div>
+      <div>
+        <div class="event-name">Puerto Vallarta by UTMB 2026</div>
+        <div class="event-location">📍 Puerto Vallarta · Jalisco</div>
+      </div>
+      <div>
+        <div class="event-distance">50</div>
+        <div class="event-dist-label">kilómetros</div>
+      </div>
+      <div class="event-badge badge-open">Inscripción abierta</div>
+    </div>
+    <div class="event-row">
+      <div class="event-date-block">
+        <div class="event-day">12</div>
+        <div class="event-month">JUL 2026</div>
+      </div>
+      <div>
+        <div class="event-name">Medio Maratón de la Ciudad de México 2026</div>
+        <div class="event-location">📍 Paseo de la Reforma · CDMX</div>
+      </div>
+      <div>
+        <div class="event-distance">21</div>
+        <div class="event-dist-label">kilómetros</div>
+      </div>
+      <div class="event-badge badge-open">Inscripción abierta</div>
+    </div>
+    <div class="event-row">
+      <div class="event-date-block">
+        <div class="event-day">30</div>
+        <div class="event-month">AGO 2026</div>
+      </div>
+      <div>
+        <div class="event-name">Maratón de la Ciudad de México 2026</div>
+        <div class="event-location">📍 CU → Zócalo · CDMX · World Athletics Gold Label</div>
+      </div>
+      <div>
+        <div class="event-distance">42</div>
+        <div class="event-dist-label">kilómetros</div>
+      </div>
+      <div class="event-badge badge-open">Inscripción abierta</div>
+    </div>
+    <div class="event-row">
+      <div class="event-date-block">
+        <div class="event-day">01</div>
+        <div class="event-month">OCT 2026</div>
+      </div>
+      <div>
+        <div class="event-name">Chihuahua by UTMB 2026</div>
+        <div class="event-location">📍 Chihuahua · Chihuahua</div>
+      </div>
+      <div>
+        <div class="event-distance">100</div>
+        <div class="event-dist-label">kilómetros</div>
+      </div>
+      <div class="event-badge badge-open">Inscripción abierta</div>
+    </div>
+  </div>
+</section>
+
+<!-- RANKINGS -->
+<section id="rankings">
+  <div class="section-header">
+    <span class="section-num">04 —</span>
+    <h2 class="section-title">Tabla de Líderes</h2>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active">Maratón 42K</button>
+    <button class="tab">Medio Maratón</button>
+    <button class="tab">10K</button>
+    <button class="tab">5K</button>
+  </div>
+
+  <table class="rankings-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Corredor</th>
+        <th>Tiempo</th>
+        <th>Ritmo</th>
+        <th>Carrera</th>
+      </tr>
+    </thead>
+    <tbody id="rankingsBody">
+    </tbody>
+  </table>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">PACE</div>
+  <div class="footer-copy">© 2025 · Comunidad privada de corredores · Acceso controlado vía GitHub</div>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div class="modal-bg" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeLogin()">✕</button>
+    <div class="modal-eyebrow">· acceso exclusivo ·</div>
+    <div class="modal-title">Únete a PACE</div>
+    <p class="modal-desc">Esta comunidad es privada. Accede con tu cuenta de GitHub y el administrador aprobará tu solicitud.</p>
+
+    <a class="modal-btn" href="https://github.com/login/oauth/authorize?client_id=TU_CLIENT_ID&scope=read:user,user:email&redirect_uri=https://tu-dominio.com/callback" id="githubOAuthBtn">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.929.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .315.216.69.825.57C20.565 21.796 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      Continuar con GitHub
+    </a>
+
+    <hr class="modal-divider">
+    <p class="modal-note">
+      <strong>Acceso controlado:</strong> Tras autenticarte, el administrador<br>
+      debe aprobar tu cuenta para poder publicar y ver contenido exclusivo.<br><br>
+      ¿Ya tienes acceso? Inicia sesión normalmente.
+    </p>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-title">Panel de Administrador · Control de acceso</div>
+  <div id="adminList">
+    <!-- generado por JS -->
+  </div>
+</div>
+
+<script>
+// ── SCROLL ──
+function scrollTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── MODAL ──
+function openLogin() {
+  document.getElementById('loginModal').classList.add('open');
+}
+function closeLogin() {
+  document.getElementById('loginModal').classList.remove('open');
+}
+document.getElementById('loginModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeLogin();
+});
+
+// ── TABS ──
+document.querySelectorAll('.tabs').forEach(tabsEl => {
+  tabsEl.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabsEl.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+});
+
+// ── FEED DATA ──
+const posts = [
+  {
+    author: 'Carlos M.',
+    initials: 'CM',
+    date: 'hace 2 horas',
+    category: 'Carrera',
+    title: 'Mi primer maratón en 3:42',
+    body: 'Nunca pensé que lo lograría. El kilómetro 35 fue el más duro de mi vida, pero algo dentro de mí no me dejó parar. Gracias a todos por el apoyo.',
+    km: '42.2', likes: 48, comments: 12
+  },
+  {
+    author: 'Ana R.',
+    initials: 'AR',
+    date: 'hace 5 horas',
+    category: 'Entrenamiento',
+    title: 'Rutina de fuerza para corredores',
+    body: 'Llevar 6 meses trabajando la fuerza de glúteos e isquios cambió completamente mis tiempos. Les comparto el plan que uso cada semana.',
+    km: '—', likes: 31, comments: 9
+  },
+  {
+    author: 'Diego L.',
+    initials: 'DL',
+    date: 'hace 1 día',
+    category: 'Consejos',
+    title: 'Nutrición en carreras largas',
+    body: 'El gel cada 40 minutos es el estándar, pero hay algo mejor. Después de 20 maratones, encontré la combinación perfecta de carbohidratos y sodio.',
+    km: '—', likes: 57, comments: 21
+  },
+  {
+    author: 'Sara V.',
+    initials: 'SV',
+    date: 'hace 2 días',
+    category: 'Carrera',
+    title: 'Trail nocturno en Desierto de los Leones',
+    body: 'Correr bajo las estrellas con el silencio del bosque es una experiencia que no tiene precio. El terreno fue brutal pero cada paso valió la pena.',
+    km: '18.5', likes: 43, comments: 15
+  },
+  {
+    author: 'Miguel T.',
+    initials: 'MT',
+    date: 'hace 3 días',
+    category: 'Entrenamiento',
+    title: 'Serie de intervalos 400m × 10',
+    body: 'Bajé mi tiempo en 5K en casi un minuto después de 8 semanas de series. El dolor del entrenamiento ya vale la gloria de la pista.',
+    km: '12.0', likes: 26, comments: 7
+  },
+  {
+    author: 'Pau G.',
+    initials: 'PG',
+    date: 'hace 4 días',
+    category: 'Consejos',
+    title: 'Cómo recuperarse después de una ultra',
+    body: 'La semana post-ultra es tan importante como el entrenamiento previo. Comparto mi protocolo de recuperación activa que me mantiene sano temporada tras temporada.',
+    km: '—', likes: 38, comments: 18
+  },
+];
+
+const feedGrid = document.getElementById('feedGrid');
+posts.forEach(p => {
+  feedGrid.innerHTML += `
+    <div class="post-card">
+      <div class="post-meta">
+        <div class="avatar">${p.initials}</div>
+        <div>
+          <div class="post-author">${p.author}</div>
+          <div class="post-date">${p.date}</div>
+        </div>
+        <span class="post-category">${p.category}</span>
+      </div>
+      <div class="post-title">${p.title}</div>
+      <div class="post-body">${p.body}</div>
+      <div class="post-footer">
+        <span class="post-stat">
+          <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ${p.likes}
+        </span>
+        <span class="post-stat">
+          <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ${p.comments}
+        </span>
+        ${p.km !== '—' ? `<span class="post-stat" style="margin-left:auto; color:var(--gold-dim)">
+          <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ${p.km} km
+        </span>` : ''}
+      </div>
+    </div>
+  `;
+});
+
+// ── RANKINGS DATA ──
+const runners = [
+  { pos: 1, name: 'Tadu Abate Deme',       initials: 'TA', time: '2:11:17', pace: '3:07 /km', race: 'Maratón CDMX 2025 · 🥇 Varonil' },
+  { pos: 2, name: 'Bernard Kipkorir',       initials: 'BK', time: '2:11:28', pace: '3:07 /km', race: 'Maratón CDMX 2025 · 🥈 Varonil' },
+  { pos: 3, name: 'Edwin Kiprop Kiptoo',    initials: 'EK', time: '2:13:17', pace: '3:10 /km', race: 'Maratón CDMX 2025 · 🥉 Varonil' },
+  { pos: 4, name: 'Bekelech Gudeta Borecha',initials: 'BG', time: '2:28:36', pace: '3:32 /km', race: 'Maratón CDMX 2025 · 🥇 Femenil' },
+  { pos: 5, name: 'Lizaida Thalía Valdivia',initials: 'LV', time: '2:32:47', pace: '3:37 /km', race: 'Maratón CDMX 2025 · 🥈 Femenil' },
+  { pos: 6, name: 'Oscar Crisistomo',       initials: 'OC', time: '2:24:09', pace: '3:25 /km', race: 'Maratón CDMX 2025 · 🇲🇽 Mejor mexicano' },
+  { pos: 7, name: 'Martin Magengo',         initials: 'MM', time: '1:03:22', pace: '3:00 /km', race: 'Medio Maratón CDMX 2025 · 🏆 Récord' },
+];
+
+const tbody = document.getElementById('rankingsBody');
+runners.forEach(r => {
+  const rankClass = r.pos <= 3 ? `rank-${r.pos}` : '';
+  tbody.innerHTML += `
+    <tr class="${rankClass}">
+      <td class="rank-num">${r.pos}</td>
+      <td>
+        <div class="rank-runner">
+          <div class="avatar" style="width:30px;height:30px;font-size:0.75rem">${r.initials}</div>
+          ${r.name}
+        </div>
+      </td>
+      <td class="rank-time">${r.time}</td>
+      <td class="rank-pace">${r.pace}</td>
+      <td class="rank-event">${r.race}</td>
+    </tr>
+  `;
+});
+
+// ── ADMIN PANEL ──
+const adminUsers = [
+  { name: 'Carlos M.', github: '@carlosmend', active: true },
+  { name: 'Ana R.',    github: '@ana_r_run',  active: true },
+  { name: 'Diego L.',  github: '@diegolopez', active: true },
+  { name: 'Luis P.',   github: '@luisp99',    active: false },
+  { name: 'Karen S.',  github: '@karsosa',    active: false },
+];
+
+const adminList = document.getElementById('adminList');
+adminUsers.forEach((u, i) => {
+  adminList.innerHTML += `
+    <div class="admin-item">
+      <div class="admin-user">
+        ${u.name}
+        <span>${u.github}</span>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" ${u.active ? 'checked' : ''} onchange="toggleUser(this, '${u.name}')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  `;
+});
+
+function toggleUser(el, name) {
+  const status = el.checked ? 'habilitado' : 'deshabilitado';
+  console.log(`Usuario ${name} ${status}`);
+  // Aquí iría la llamada a tu backend / GitHub API para actualizar permisos
+}
+
+// Activar panel admin con doble clic en logo (solo para el admin)
+document.querySelector('.logo').addEventListener('dblclick', () => {
+  document.getElementById('adminPanel').classList.toggle('open');
+});
+
+// ── INTERSECTION OBSERVER para animaciones ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.post-card, .gallery-item, .event-row, tr').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(20px)';
+  el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
